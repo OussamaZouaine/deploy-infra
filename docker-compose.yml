@@ -1,0 +1,20 @@
+services:
+  frontend:
+    image: oussamazouaine/jenkins-next-demo:latest
+    container_name: jenkins-next-demo
+
+  backend:
+    image: oussamazouaine/backend-demo:latest
+    container_name: backend-demo
+
+  database:
+    image: postgres:alpine
+    container_name: postgres-db-demo
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
