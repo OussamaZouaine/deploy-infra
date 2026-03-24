@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     options {
-        skipStaleStageBuild()
         timeout(time: 15, unit: 'MINUTES')
     }
 
