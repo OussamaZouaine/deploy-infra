@@ -19,9 +19,19 @@ pipeline {
         stage('Run Docker Compose') {
             steps {
                 script {
-                    // Use 'docker compose' (V2) or 'docker-compose' (V1) on the agent if needed
-                    sh 'docker compose pull'
-                    sh 'docker compose up -d'
+                    sh '''
+                        set -e
+                        if docker compose version >/dev/null 2>&1; then
+                            docker compose pull
+                            docker compose up -d
+                        elif command -v docker-compose >/dev/null 2>&1; then
+                            docker-compose pull
+                            docker-compose up -d
+                        else
+                            echo "Neither Docker Compose V2 (docker compose) nor docker-compose (v1) is installed on this agent." >&2
+                            exit 1
+                        fi
+                    '''
                 }
             }
         }
