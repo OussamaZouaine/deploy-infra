@@ -29,15 +29,29 @@ pipeline {
     }
 
     post {
+        always {
+            echo '🧹 cleaning up the workspace...'
+            deleteDir()
+        }
         success {
-            echo 'Stack started successfully. frontend, backend, and database are running.'
+            echo '✅ Infra Stack started successfully. frontend, backend, and database are running.'
+            slackSend(
+                color: 'good',
+                message: "✅ *${env.JOB_NAME}* #${env.BUILD_NUMBER} succeeded\n<${env.BUILD_URL}|Open build> • Branch: ${env.BRANCH_NAME ?: 'N/A'} • Image: `${env.IMAGE_NAME}:${env.IMAGE_TAG ?: 'n/a'}`"
+            )
         }
         failure {
-            echo 'Failed to run Docker Compose. Check logs above.'
+            echo '❌ Failed to run Docker Compose. Check logs above.'
+            slackSend(
+                color: 'danger',
+                message: "❌ *${env.JOB_NAME}* #${env.BUILD_NUMBER} failed\n<${env.BUILD_URL}|Open build> • Branch: ${env.BRANCH_NAME ?: 'N/A'}"
+            )
         }
-        cleanup {
-            // Optional: uncomment to tear down the stack when the job ends
-            // sh 'docker compose down || true'
+        unstable {
+            slackSend(
+                color: 'warning',
+                message: "⚠️ *${env.JOB_NAME}* #${env.BUILD_NUMBER} is unstable\n<${env.BUILD_URL}|Open build>"
+            )
         }
     }
 }
