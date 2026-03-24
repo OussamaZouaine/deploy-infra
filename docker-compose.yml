@@ -7,6 +7,7 @@ services:
     image: oussamazouaine/backend-demo:latest
     container_name: backend-demo
 
+  # disabled database service for now
   # database:
   #   image: postgres:alpine
   #   container_name: postgres-db-demo
