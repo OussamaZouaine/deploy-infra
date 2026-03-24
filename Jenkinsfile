@@ -21,14 +21,36 @@ pipeline {
                 script {
                     sh '''
                         set -e
+                        COMPOSE_VERSION="v2.29.2"
                         if docker compose version >/dev/null 2>&1; then
                             docker compose pull
                             docker compose up -d
                         elif command -v docker-compose >/dev/null 2>&1; then
                             docker-compose pull
                             docker-compose up -d
+                        elif command -v docker >/dev/null 2>&1; then
+                            ARCH=$(uname -m)
+                            case "$ARCH" in
+                                x86_64) COMPOSE_ARCH="docker-compose-linux-x86_64" ;;
+                                aarch64|arm64) COMPOSE_ARCH="docker-compose-linux-aarch64" ;;
+                                *) echo "Unsupported architecture for Compose bootstrap: $ARCH" >&2; exit 1 ;;
+                            esac
+                            PLUGIN_DIR="${HOME}/.docker/cli-plugins"
+                            mkdir -p "$PLUGIN_DIR"
+                            URL="https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/${COMPOSE_ARCH}"
+                            if command -v curl >/dev/null 2>&1; then
+                                curl -fsSL "$URL" -o "$PLUGIN_DIR/docker-compose"
+                            elif command -v wget >/dev/null 2>&1; then
+                                wget -qO "$PLUGIN_DIR/docker-compose" "$URL"
+                            else
+                                echo "Need curl or wget to install the Docker Compose v2 plugin." >&2
+                                exit 1
+                            fi
+                            chmod +x "$PLUGIN_DIR/docker-compose"
+                            docker compose pull
+                            docker compose up -d
                         else
-                            echo "Neither Docker Compose V2 (docker compose) nor docker-compose (v1) is installed on this agent." >&2
+                            echo "docker is not installed on this agent." >&2
                             exit 1
                         fi
                     '''
