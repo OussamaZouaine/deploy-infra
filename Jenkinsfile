@@ -19,8 +19,8 @@ pipeline {
         stage('Run Docker Compose') {
             steps {
                 script {
-                    // Use 'docker compose' (V2) or 'docker-compose' (V1) depending on your Jenkins agent
-                    sh 'docker compose pull --quiet'
+                    // Use 'docker compose' (V2) or 'docker-compose' (V1) on the agent if needed
+                    sh 'docker compose pull'
                     sh 'docker compose up -d'
                 }
             }
