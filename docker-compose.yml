@@ -9,8 +9,10 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
       POSTGRES_DB: todos
+    # Host 5433 avoids clashing with a local PostgreSQL or another container already bound to 5432.
+    # Inside the network, backend still uses postgres:5432.
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-todos.sql:/docker-entrypoint-initdb.d/01-init-todos.sql:ro
