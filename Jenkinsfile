@@ -23,11 +23,21 @@ pipeline {
                         set -e
                         COMPOSE_VERSION="v2.29.2"
                         if docker compose version >/dev/null 2>&1; then
-                            docker compose pull
-                            docker compose up -d
+                            if [ -f deploy-infra/docker-compose.yml ]; then
+                              COMPOSE_FILE="deploy-infra/docker-compose.yml"
+                            else
+                              COMPOSE_FILE="docker-compose.yml"
+                            fi
+                            docker compose -f "$COMPOSE_FILE" pull
+                            docker compose -f "$COMPOSE_FILE" up -d
                         elif command -v docker-compose >/dev/null 2>&1; then
-                            docker-compose pull
-                            docker-compose up -d
+                            if [ -f deploy-infra/docker-compose.yml ]; then
+                              COMPOSE_FILE="deploy-infra/docker-compose.yml"
+                            else
+                              COMPOSE_FILE="docker-compose.yml"
+                            fi
+                            docker-compose -f "$COMPOSE_FILE" pull
+                            docker-compose -f "$COMPOSE_FILE" up -d
                         elif command -v docker >/dev/null 2>&1; then
                             ARCH=$(uname -m)
                             case "$ARCH" in
@@ -47,8 +57,13 @@ pipeline {
                                 exit 1
                             fi
                             chmod +x "$PLUGIN_DIR/docker-compose"
-                            docker compose pull
-                            docker compose up -d
+                            if [ -f deploy-infra/docker-compose.yml ]; then
+                              COMPOSE_FILE="deploy-infra/docker-compose.yml"
+                            else
+                              COMPOSE_FILE="docker-compose.yml"
+                            fi
+                            docker compose -f "$COMPOSE_FILE" pull
+                            docker compose -f "$COMPOSE_FILE" up -d
                         else
                             echo "docker is not installed on this agent." >&2
                             exit 1

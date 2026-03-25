@@ -1,21 +1,43 @@
+# Standalone: no `include` of other repos—each service uses public images from Docker Hub.
+# Clone only this repo on the server/Jenkins agent; `docker compose pull && docker compose up -d`.
+# If you change the DB schema, update [docker/init-todos.sql](docker/init-todos.sql) to match backend-demo.
+
 services:
-  frontend:
-    image: oussamazouaine/jenkins-next-demo:latest
-    container_name: jenkins-next-demo
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: todos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-todos.sql:/docker-entrypoint-initdb.d/01-init-todos.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d todos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     image: oussamazouaine/backend-demo:latest
-    container_name: backend-demo
+    environment:
+      DATABASE_URL: postgresql://app:app@postgres:5432/todos
+    ports:
+      - "3010:3010"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # disabled database service for now
-  # database:
-  #   image: postgres:alpine
-  #   container_name: postgres-db-demo
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=postgres
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
+  frontend:
+    image: oussamazouaine/jenkins-next-demo:latest
+    environment:
+      BACKEND_URL: http://backend:3010
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
