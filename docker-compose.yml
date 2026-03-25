@@ -37,8 +37,9 @@ services:
     image: oussamazouaine/jenkins-next-demo:latest
     environment:
       BACKEND_URL: http://backend:3010
+    # Host 3001 avoids clashing with another process already bound to 3000. Container still listens on 3000.
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
 
